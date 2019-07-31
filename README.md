@@ -126,16 +126,12 @@ def delete_error_image(father_path):
 下载的图片中可能没有人脸，或者包含多张人脸，所以我们要把这些图片删除掉，该功能主要在`delete_more_than_one.py`中实现。删除没有人脸或者过多人脸图片的关键代码片段如下。
 ```python
 # 删除两个人脸以上的图片或者没有人脸的图片
-def delete_image(result, image_path):
+def delete_image(image_path):
     try:
-        face_num = int(result['result']['face_num'])
-        if face_num is not 1:
+        image = face_recognition.load_image_file(image_path)
+        result = face_recognition.face_locations(image, model='cnn')
+        if len(result) != 1:
             os.remove(image_path)
-        else:
-            face_type = result['result']['face_list'][0]['face_type']['type']
-            probability = result['result']['face_list'][0]['face_type']['probability']
-            if face_type == 'cartoon' and probability > 0.8:
-                os.remove(image_path)
     except:
         os.remove(image_path)
 ```
@@ -150,59 +146,55 @@ def delete_image(result, image_path):
 def find_same_person(person_image_path):
     # 获取该人中的所有图片
     image_paths = os.listdir(person_image_path)
-    if '0.jpg' in image_paths:
-        image_paths.remove('0.jpg')
-    # 临时选择第一个作为主图片
-    temp_image = os.path.join(person_image_path, image_paths[0])
-    main_path = os.path.join(person_image_path, '0.jpg')
-    if os.path.exists(main_path):
-        os.remove(main_path)
-    shutil.copyfile(temp_image, main_path)
-    for main_image in image_paths:
-        # 获取主图片的全路径
-        main_image = os.path.join(person_image_path, main_image)
-        # 获取主图片的base64
-        main_img = get_file_content(main_image)
-        # 统计相同人脸数量
-        same_sum = 0
-        for other_image in image_paths:
-            # 获取其他对比人脸的全路径
-            other_image = os.path.join(person_image_path, other_image)
-            # 获取其他对比图片的base64
-            other_img = get_file_content(other_image)
-            # 获取对比结果
-            result = match_image(main_img, other_img)
-            time.sleep(0.5)
-            # 判断是不是同一个人
-            if if_same_person(result):
-                same_sum += 1
-            # 当相同的人脸超过6个是就做为主图片
-            if same_sum >= 6:
+    known_face_encodings = []
+    for image_path in image_paths:
+        img_path = os.path.join(person_image_path, image_path)
+        try:
+            image = face_recognition.load_image_file(img_path)
+            encodings = face_recognition.face_encodings(image, num_jitters=10)[0]
+            known_face_encodings.append(encodings)
+        except:
+            os.remove(img_path)
+
+    for image_path in image_paths:
+        try:
+            img_path = os.path.join(person_image_path, image_path)
+            image = face_recognition.load_image_file(img_path)
+            a_single_unknown_face_encoding = face_recognition.face_encodings(image, num_jitters=10)[0]
+            results = face_recognition.compare_faces(known_face_encodings, a_single_unknown_face_encoding,
+                                                     tolerance=0.5)
+            results = numpy.array(results).astype(numpy.int64)
+            if numpy.sum(results) > 5:
+                main_path = os.path.join(person_image_path, '0.jpg')
                 if os.path.exists(main_path):
                     os.remove(main_path)
-                shutil.copyfile(main_image, main_path)
-                break
-        if same_sum > 6:
-            break
+                shutil.copyfile(img_path, main_path)
+        except:
+            pass
 ```
 
 然后删除与主图片不是同一个人的图片，这个功能主要在`delete_not_same_person.py`中实现，以下是删除不是同一个人脸的图片核心代码片段。
 ```python
-        for name_path in tqdm(name_paths):
+    name_paths = os.listdir(father_path)
+    # 确保全部文件夹都下的图片都标记了
+    if check_if_all_rename(father_path, name_paths):
+        for name_path in name_paths:
+            print('正在对比 %s 图片...' % name_path)
             image_paths = os.listdir(os.path.join(father_path, name_path))
+            # 正确图片的路径
+            main_image = os.path.join(father_path, name_path, '0.jpg')
+            main_img = face_recognition.load_image_file(main_image)
+            main_encodings = face_recognition.face_encodings(main_img, num_jitters=100)[0]
             for image_path in image_paths:
-                # 正确图片的路径
-                main_image = os.path.join(father_path, name_path, '0.jpg')
                 # 要对比的图片
                 img_path = os.path.join(father_path, name_path, image_path)
-                # 获取图片的base64
-                main_img = get_file_content(main_image)
-                img = get_file_content(img_path)
-                time.sleep(0.5)
-                # 预测图片并进行处理
-                result = match_image(main_img, img)
-                delete_image(result, img_path)
+                image = face_recognition.load_image_file(img_path)
+                unknown_encoding = face_recognition.face_encodings(image, num_jitters=100)[0]
+                results = face_recognition.compare_faces([main_encodings], unknown_encoding, tolerance=0.5)
+                if not results[0]:
+                    os.remove(img_path)
             shutil.move(src=os.path.join(father_path, name_path), dst=os.path.join('star_image', name_path))
+        print('对比完成')
 ```
 
 然后执行`delete_surplus_url.py`程序，从`image_url_list.txt`中删除本地不存在图片对应的URL。
