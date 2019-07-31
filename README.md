@@ -55,7 +55,7 @@ def get_page(pages, star_name):
 
 
 然后根据明星的名字从网上下载图片，该功能主要在`download_image.py`中实现，以下就是下载图片的核心代码片段。
-```
+```python
 # 获取百度图片下载图片
 def download_image(key_word, download_max):
     download_sum = 0
