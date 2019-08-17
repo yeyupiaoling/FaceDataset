@@ -3,7 +3,6 @@ import re
 import uuid
 
 import requests
-from tqdm import tqdm
 
 
 # 获取百度图片下载图片
@@ -22,6 +21,7 @@ def download_image(key_word, download_max):
         # 定义百度图片的路径
         url = 'http://image.baidu.com/search/flip?tn=baiduimage&ie=utf-8&' \
               'word=' + key_word + '&pn=' + str_pn + '&gsm=' + str_gsm + '&ct=&ic=0&lm=-1&width=0&height=0'
+        print('正在下载 %s 的第 %d 张图片.....' % (key_word, download_sum))
         try:
             # 获取当前页面的源码
             result = requests.get(url, timeout=30).text
@@ -43,21 +43,23 @@ def download_image(key_word, download_max):
                 if download_sum >= download_max:
                     break
         except Exception as e:
+            print('【错误】当前图片无法下载，%s' % e)
             download_sum += 1
             continue
+    print('下载完成')
 
 
 if __name__ == '__main__':
     # 清空图片链接文档和以下载完成的记录文档
     with open('image_url_list.txt', 'w', encoding='utf-8') as f_u:
         pass
-    max_sum = 300
+    # 最大下载数量
+    max_sum = 100
     # 从文件中获取明星的名字
     with open('star_name.txt', 'r', encoding='utf-8') as f:
         key_words = f.readlines()
-    print("开始下载图片， 下载图片非常消耗时间，请耐心等待...")
     # 使用明星的名字开始下载图片
-    for key_word in tqdm(key_words):
+    for key_word in key_words:
         key_word = key_word.replace('\n', '')
         download_image(key_word, max_sum)
     print('全部图片以下载完成')

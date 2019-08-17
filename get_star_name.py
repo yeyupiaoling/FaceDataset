@@ -81,7 +81,5 @@ def delete_some_name():
 
 
 if __name__ == '__main__':
-    print("开始获取明星名字")
     get_star_name()
     delete_some_name()
-    print("获取完成")

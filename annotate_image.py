@@ -1,15 +1,16 @@
-import base64
-import json
 import os
 import shutil
 import time
-
 from aip import AipFace
+import base64
+import json
 from tqdm import tqdm
 
-import key_value
-
-client = AipFace(key_value.APP_ID, key_value.API_KEY, key_value.SECRET_KEY)
+# 百度人脸识别的 APP_ID, API_KEY, SECRET_KEY
+APP_ID = ''
+API_KEY = ''
+SECRET_KEY = ''
+client = AipFace(APP_ID, API_KEY, SECRET_KEY)
 
 # 存放人的名字
 names = set()
@@ -87,15 +88,13 @@ def annotate_image(result, image_path, image_url):
         with open(annotation_file_path, 'w', encoding='utf-8') as f_a:
             f_a.write(json_format)
     except Exception as e:
-        os.remove(image_path)
-        pass
+        print(e)
 
 
 if __name__ == '__main__':
     list_path = 'image_url_list.txt'
     with open(list_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
-    print("开始标记")
     # 开始标记
     for line in tqdm(lines):
         image_path, image_url = line.split('\t')
@@ -110,8 +109,7 @@ if __name__ == '__main__':
     # 重命名图片文件夹
     dict_names = dict(dict_names_list)
     name_pahts = dict_names.keys()
-    print("开始重命名")
-    for name_paht in tqdm(name_pahts):
+    for name_paht in name_pahts:
         shutil.move(os.path.join('star_image/', name_paht), os.path.join('star_image/', dict_names[name_paht]))
 
     print('重命名完成')

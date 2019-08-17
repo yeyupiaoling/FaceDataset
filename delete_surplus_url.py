@@ -38,4 +38,3 @@ if __name__ == '__main__':
             # 把存在的文件的list保留
             if exist:
                 f.write(line)
-    print("删除完成")

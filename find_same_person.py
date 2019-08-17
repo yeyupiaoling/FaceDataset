@@ -16,11 +16,15 @@ def find_same_person(person_image_path):
             image = face_recognition.load_image_file(img_path)
             encodings = face_recognition.face_encodings(image, num_jitters=10)[0]
             known_face_encodings.append(encodings)
-        except:
-            os.remove(img_path)
+        except Exception as e:
+            try:
+                os.remove(img_path)
+            except Exception as e:
+                print(e)
 
     for image_path in image_paths:
         try:
+            print(image_path)
             img_path = os.path.join(person_image_path, image_path)
             image = face_recognition.load_image_file(img_path)
             a_single_unknown_face_encoding = face_recognition.face_encodings(image, num_jitters=10)[0]
@@ -32,6 +36,7 @@ def find_same_person(person_image_path):
                 if os.path.exists(main_path):
                     os.remove(main_path)
                 shutil.copyfile(img_path, main_path)
+                break
         except:
             pass
 

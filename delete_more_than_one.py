@@ -1,16 +1,26 @@
 import os
 import shutil
-import face_recognition
+import cv2
+import numpy as np
+from mtcnn.mtcnn import MTCNN
+
+detector = MTCNN()
 
 
 # 删除两个人脸以上的图片或者没有人脸的图片
 def delete_image(image_path):
     try:
-        image = face_recognition.load_image_file(image_path)
-        result = face_recognition.face_locations(image, model='cnn')
+        img = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), -1)
+        result = detector.detect_faces(img)
         if len(result) != 1:
             os.remove(image_path)
-    except:
+        else:
+            confidence = result[0]['confidence']
+            if confidence < 0.85:
+                os.remove(image_path)
+    except Exception as e:
+        print(e)
+        print('delete: %s' % image_path)
         os.remove(image_path)
 
 
