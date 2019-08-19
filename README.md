@@ -1,6 +1,17 @@
 # FaceDataset
 制作亚洲人脸数据集
 
+## 依赖环境
+```
+pip3 install baidu-aip -i https://mirrors.aliyun.com/pypi/simple/
+pip3 install tqdm -i https://mirrors.aliyun.com/pypi/simple/
+pip3 install pillow -i https://mirrors.aliyun.com/pypi/simple/
+pip3 install tensorflow==1.14.0 -i https://mirrors.aliyun.com/pypi/simple/
+pip3 install mtcnn -i https://mirrors.aliyun.com/pypi/simple/
+pip3 install opencv-python -i https://mirrors.aliyun.com/pypi/simple/
+pip3 install face_recognition -i https://mirrors.aliyun.com/pypi/simple/
+```
+
 # 制作人脸数据集
 下面我们就介绍如何制作自己的人脸数据集，项目的开源地址：https://github.com/yeyupiaoling/FaceDataset 。该项目可以分为两个阶段，第一阶段是人脸图片的获取和简单的清洗，第二阶段是人脸图片的高级清洗和标注人脸信息。人脸信息的标注和清洗使用到了百度的人脸识别服务。
 
@@ -128,11 +139,17 @@ def delete_error_image(father_path):
 # 删除两个人脸以上的图片或者没有人脸的图片
 def delete_image(image_path):
     try:
-        image = face_recognition.load_image_file(image_path)
-        result = face_recognition.face_locations(image, model='cnn')
+        img = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), -1)
+        result = detector.detect_faces(img)
         if len(result) != 1:
             os.remove(image_path)
-    except:
+        else:
+            confidence = result[0]['confidence']
+            if confidence < 0.85:
+                os.remove(image_path)
+    except Exception as e:
+        print(e)
+        print('delete: %s' % image_path)
         os.remove(image_path)
 ```
 

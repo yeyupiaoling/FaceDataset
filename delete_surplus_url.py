@@ -1,9 +1,8 @@
 import os
-
-# 获取文件中的列表
 import shutil
 
 
+# 获取文件中的列表
 def get_txt_list(list_path):
     with open(list_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
