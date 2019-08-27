@@ -32,7 +32,7 @@ if __name__ == '__main__':
                 img_path = os.path.join(father_path, name_path, image_path)
                 image = face_recognition.load_image_file(img_path)
                 unknown_encoding = face_recognition.face_encodings(image, num_jitters=100)[0]
-                results = face_recognition.compare_faces([main_encodings], unknown_encoding, tolerance=0.5)
+                results = face_recognition.compare_faces([main_encodings], unknown_encoding, tolerance=0.6)
                 if not results[0]:
                     os.remove(img_path)
             shutil.move(src=os.path.join(father_path, name_path), dst=os.path.join('star_image', name_path))
