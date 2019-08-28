@@ -10,7 +10,7 @@ def check_if_all_rename(father_path, name_paths):
     for name_path in name_paths:
         main_image = os.path.join(father_path, name_path, '0.jpg')
         if not os.path.exists(main_image):
-            exist = False
+            shutil.rmtree(os.path.join(father_path, name_path))
             print('%s 还没标记`0.jpg`图片' % name_path)
     return exist
 
@@ -26,14 +26,17 @@ if __name__ == '__main__':
             # 正确图片的路径
             main_image = os.path.join(father_path, name_path, '0.jpg')
             main_img = face_recognition.load_image_file(main_image)
-            main_encodings = face_recognition.face_encodings(main_img, num_jitters=100)[0]
+            main_encodings = face_recognition.face_encodings(main_img, num_jitters=10)[0]
             for image_path in image_paths:
                 # 要对比的图片
                 img_path = os.path.join(father_path, name_path, image_path)
                 image = face_recognition.load_image_file(img_path)
-                unknown_encoding = face_recognition.face_encodings(image, num_jitters=100)[0]
-                results = face_recognition.compare_faces([main_encodings], unknown_encoding, tolerance=0.6)
-                if not results[0]:
+                try:
+                    unknown_encoding = face_recognition.face_encodings(image, num_jitters=10)[0]
+                    results = face_recognition.compare_faces([main_encodings], unknown_encoding, tolerance=0.6)
+                    if not results[0]:
+                        os.remove(img_path)
+                except:
                     os.remove(img_path)
             shutil.move(src=os.path.join(father_path, name_path), dst=os.path.join('star_image', name_path))
         print('对比完成')
