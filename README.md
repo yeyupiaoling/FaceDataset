@@ -286,14 +286,29 @@ def annotate_image(result, image_path, image_url):
         pass
 ```
 
-整个项目完成的时间的非常久的，特别是使用到百度AI服务的程序，为了不出现每秒访问次数超过2次（免费的版本是每秒自动访问2次），所在做了休眠处理，所以这样浪费了不少时间。
+整个项目完成的时间的非常久的，请耐心等待。
 
 
 # 使用方法
-在Ubuntu下分别执行：
-```bash
-python3 run_get_image_code.py
-python3 run_annotate_image.py
+分别执行一下代码：
+```python
+# 执行获取明星名字程序
+python3 get_star_name.py
+# 下载人脸图片
+python3 download_image.py
+# 删除错误图片
+python3 delete_error_image.py
+# 删除不符合的图片
+python3 delete_more_than_one.py
+
+# 寻找同一个人脸为主图片
+python3 find_same_person.py
+# 删除同一个目录下不是相同人脸的图片
+python3 delete_not_same_person.py
+# 删除已经清理的图片
+python3 delete_surplus_url.py
+# 开始标注人脸图片
+python3 annotate_image.py
 ```
 
 # 免责声明
