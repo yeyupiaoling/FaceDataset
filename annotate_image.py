@@ -17,7 +17,6 @@ names = set()
 
 dict_names_list = []
 
-
 # 把图片转换成base64
 def get_file_content(file_path):
     with open(file_path, 'rb') as fp:
@@ -28,7 +27,7 @@ def get_file_content(file_path):
 def detect_image(image):
     options = {}
     options["max_face_num"] = 1
-    options["face_field"] = 'beauty,expression,faceshape,gender,glasses,landmark,age'
+    options["face_field"] = 'beauty,expression,faceshape,gender,glasses,landmark,landmark72,landmark150,age'
     try:
         result = client.detect(image, image_type='BASE64', options=options)
         return result
@@ -47,6 +46,7 @@ def annotate_image(result, image_path, image_url):
     # 把这些名字转换成数字标号
     names.add(name)
     num_name = str(len(names) - 1)
+    img_path = num_name + '/' +os.path.basename(image_path)
     annotation_path = os.path.join('annotations', num_name)
     dict_names_list.append((name, num_name))
     annotation_file_path = os.path.join(annotation_path, str(image_name) + '.json')
@@ -75,12 +75,13 @@ def annotate_image(result, image_path, image_url):
         angle = str(result['result']['face_list'][0]['angle']).replace("'", '"')
         # 72个特征点位置
         landmark72 = str(result['result']['face_list'][0]['landmark72']).replace("'", '"')
+        # 150个特征点位置
+        landmark150 = str(result['result']['face_list'][0]['landmark150']).replace("'", '"')
         # 4个关键点位置，左眼中心、右眼中心、鼻尖、嘴中心
         landmark = str(result['result']['face_list'][0]['landmark']).replace("'", '"')
         # 拼接成符合json格式的字符串
-        txt = '{"name":"%s", "image_url":"%s","age":%f, "gender":"%s", "glasses":"%s", "expression":"%s", "beauty":%f, "face_shape":"%s", "location":%s, "angle":%s, "landmark72":%s, "landmark":%s}' \
-              % (name, image_url, age, gender, glasses, expression, beauty, face_shape, location, angle, landmark72,
-                 landmark)
+        txt = '{"name":"%s", "image_path":"%s", "image_url":"%s","age":%f, "gender":"%s", "glasses":"%s", "expression":"%s", "beauty":%f, "face_shape":"%s", "location":%s, "angle":%s, "landmark72":%s, "landmark150":%s, "landmark":%s}' \
+              % (name, img_path, image_url, age, gender, glasses, expression, beauty, face_shape, location, angle, landmark72, landmark150, landmark)
         # 转换成json数据并格式化
         json_dicts = json.loads(txt)
         json_format = json.dumps(json_dicts, sort_keys=True, indent=4, separators=(',', ':'))
@@ -96,7 +97,7 @@ if __name__ == '__main__':
     with open(list_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     # 开始标记
-    for line in tqdm(lines):
+    for line in lines:
         image_path, image_url = line.split('\t')
         image_url = image_url.replace('\n', '')
         img = get_file_content(image_path)
