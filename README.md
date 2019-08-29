@@ -291,7 +291,7 @@ def annotate_image(result, image_path, image_url):
 
 # 使用方法
 分别执行一下代码：
-```python
+```bash
 # 执行获取明星名字程序
 python3 get_star_name.py
 # 下载人脸图片
