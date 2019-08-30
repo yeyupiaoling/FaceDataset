@@ -23,6 +23,7 @@ if __name__ == '__main__':
     name_paths = os.listdir(father_path)
     # 确保全部文件夹都下的图片都标记了
     if check_if_all_rename(father_path, name_paths):
+        name_paths = os.listdir(father_path)
         for name_path in name_paths:
             print('正在对比 %s 图片...' % name_path)
             image_paths = os.listdir(os.path.join(father_path, name_path))
