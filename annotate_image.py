@@ -46,7 +46,7 @@ def annotate_image(result, image_path, image_url):
     # 把这些名字转换成数字标号
     names.add(name)
     num_name = str(len(names) - 1)
-    img_path = num_name + '/' +os.path.basename(image_path)
+    img_path = num_name + '/' + os.path.basename(image_path)
     annotation_path = os.path.join('annotations', num_name)
     dict_names_list.append((name, num_name))
     annotation_file_path = os.path.join(annotation_path, str(image_name) + '.json')
@@ -81,13 +81,20 @@ def annotate_image(result, image_path, image_url):
         landmark = str(result['result']['face_list'][0]['landmark']).replace("'", '"')
         # 拼接成符合json格式的字符串
         txt = '{"name":"%s", "image_path":"%s", "image_url":"%s","age":%f, "gender":"%s", "glasses":"%s", "expression":"%s", "beauty":%f, "face_shape":"%s", "location":%s, "angle":%s, "landmark72":%s, "landmark150":%s, "landmark":%s}' \
-              % (name, img_path, image_url, age, gender, glasses, expression, beauty, face_shape, location, angle, landmark72, landmark150, landmark)
+              % (name, img_path, image_url, age, gender, glasses, expression, beauty, face_shape, location, angle,
+                 landmark72, landmark150, landmark)
         # 转换成json数据并格式化
         json_dicts = json.loads(txt)
         json_format = json.dumps(json_dicts, sort_keys=True, indent=4, separators=(',', ':'))
         # 写入标注文件
         with open(annotation_file_path, 'w', encoding='utf-8') as f_a:
             f_a.write(json_format)
+
+        # 移动已标注的图片文件
+        save_path = os.path.join('images/', num_name)
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        shutil.move(image_path, os.path.join('images/', img_path))
     except Exception as e:
         print(e)
 
@@ -97,20 +104,15 @@ if __name__ == '__main__':
     with open(list_path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     # 开始标记
-    for line in lines:
+    for line in tqdm(lines):
         image_path, image_url = line.split('\t')
         image_url = image_url.replace('\n', '')
+        if not os.path.exists(image_path):
+            continue
         img = get_file_content(image_path)
         # 预测图片并写入标注信息
         result = detect_image(img)
         annotate_image(result, image_path, image_url)
-        time.sleep(0.5)
+        time.sleep(0.3)
 
     print('标记完成')
-    # 重命名图片文件夹
-    dict_names = dict(dict_names_list)
-    name_pahts = dict_names.keys()
-    for name_paht in name_pahts:
-        shutil.move(os.path.join('star_image/', name_paht), os.path.join('star_image/', dict_names[name_paht]))
-
-    print('重命名完成')
